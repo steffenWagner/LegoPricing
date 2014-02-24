@@ -3,6 +3,7 @@ require(httr)
 
 # Analyse
 load("setInfos.Rdata")
+content(setInfos[[1]])
 
 # Erstellen der Preis und Bauteile-Info
 dat <- do.call(rbind, 
@@ -21,11 +22,10 @@ plot(price ~ pieces, data = na.omit(dat), pch = 16,
      xlim = c(0, 1000))
 with(dat[dat$pieces >= 10, ], smoothScatter(pieces, price))
 plot(ecdf(dat$pieces))
-summary(lm(price ~ pieces, data = dat, subset = pieces >=10))
-
+lm1 <- step(lm(price ~ pieces*released, data = dat, subset = pieces >=25))
+plot(lm1)
 table(dat$pieces)
 
-head(dat)
 
 
 set <- GET("http://brickset.com/webservices/brickset.asmx/searchBySetID?SetID=70006")
