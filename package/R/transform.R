@@ -35,11 +35,11 @@ transformBS.bsSearch <- function(bsSearchObj){
                        function(y) do.call(data.frame, lapply(xmlChildren(y), 
                              function(x) ifelse(length(value <- xmlValue(x)), value, NA))))
   # Control for different amount of Values
-  namesUnique <- unique(unlist(lapply(resultList, names)))
+  namesUnique <- sort(unique(unlist(lapply(resultList, names))))
   resultList <- lapply(resultList, function(x) {if(any(missingName <- !namesUnique %in% names(x))){
     x[namesUnique[missingName]] <- NA
-    return(x)
-  } else { return(x) }
+    return(x[ ,namesUnique])
+  } else { return(x[ ,namesUnique]) }
   }
   )
   
@@ -48,7 +48,7 @@ transformBS.bsSearch <- function(bsSearchObj){
   # Order Colums
   result <- result[ , valueClasses$value[valueClasses$value %in% names(result)]]
     
-  return(setClasses(result))
+  return(result)
 }
 
 #' Set Classes According to valueClasses
@@ -66,7 +66,7 @@ setClasses <- function(x){
                           ifelse(x[ , col] == logicalValues$BS[which(!logicalValues$R)], FALSE, x[ , col]))
       class(x[ , col]) <- as.character(classToSet)
     } else if(classToSet == "factor"){
-      x[ , col] <- factor(x[ , col]) 
+      x[ , col] <- factor(as.character(x[ , col]) )
     } else {
      class(x[ , col]) <- as.character(valueClasses$class[match(col, valueClasses$value)])
     }
