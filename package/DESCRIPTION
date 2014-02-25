@@ -1,0 +1,9 @@
+Package: rLego
+Type: Package
+Title: Analysis of Lego pricing strategies
+Description: 
+Version: 0.1
+Authors: INWT
+Depends: R (>= 3.0.2), XML, httr
+License: GNU
+LazyData: true
