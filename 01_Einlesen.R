@@ -65,9 +65,14 @@ summary(dat)
 sort(table(dat$theme), decreasing = TRUE)
 themesOfInterest <- c("City", "Star Wars", "Friends", "Creator", "Teenage Mutant Ninja Turtles",
                       "Legends Of Chima", "Ninjago", "Harry Potter")
-lm1 <- lm(USRetailPrice ~ number*theme + rcs(minifigs, 4), 
+lm1 <- lm(USRetailPrice ~ number:theme + minifigs + factor(year), 
           data = dat, subset = theme %in% themesOfInterest)
 summary(lm1)
 anova(lm1)
 termplot(lm1, partial.resid = FALSE, rug = TRUE, 
          ylim = "free", smooth = panel.smooth, las = 2)
+
+aggregate(USRetailPrice ~ theme, data = dat, mean)
+dat$pred <- predict(lm1)
+dat[names(sort((resid(lm1)), decreasing=FALSE)[1:10]),]
+
