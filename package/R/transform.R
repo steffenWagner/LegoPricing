@@ -10,7 +10,7 @@ valueClasses <- data.frame(value = c("setID", "number", "numberVariant", "setNam
                                      "lastUpdated"),
                            class = c("factor", "factor", "factor", "factor", 
                                      "integer", "factor", "factor", 
-                                     "integer", "integer", "character", 
+                                     "integer", "integer", "logical", 
                                      "character", "character", "character", 
                                      "character", "logical", "logical", 
                                      "integer", "character", "numeric", 
@@ -51,7 +51,7 @@ transformBS.bsSearch <- function(bsSearchObj){
   result <- result[ , valueClasses$value[valueClasses$value %in% names(result)]]
     
   options(stringsAsFactors = safOld)
-  return(result)
+  return(setClasses(result))
 }
 
 #' Set Classes According to valueClasses
