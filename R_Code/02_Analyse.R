@@ -7,7 +7,8 @@ files
 load(file = files[1])
 
 # Wieviele Teile hat der kleine Feuerwehr-Bausatz (60000)
-dat[dat$number == "60000", "pieces"]
+setClasses(dat[dat$number == 60000, "pieces"])
+
 filter <- dat$pieces >= 40 & !is.na(dat$USRetailPrice) & 
     !is.na(dat$UKRetailPrice) & !is.na(dat$pieces)
 dat <- dat[filter, ]

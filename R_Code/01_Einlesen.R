@@ -9,8 +9,8 @@ years <- 2000:2014
 XMLdata <- lapply(years, function(x) searchBS(year = x, apiKey=apiKey))
 
 ## Aufbereiten der Daten
-datYear <- lapply(XMLdata, transformBS)
-dat <- setClasses(do.call(rbind, datYear))
-dat$minifigs[is.na(dat$minifigs)] <- 0
+datYear <- lapply(XMLdata[1:2], transformBS)
+lapply(datYear, str)
+dat <- do.call(rbind, datYear)
 save(dat, file = paste("Data/SetsYears_", paste(range(years), collapse = "-"), ".Rdata", sep = ""), compress = TRUE)
 

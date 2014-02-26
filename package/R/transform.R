@@ -25,6 +25,8 @@ transformBS <- function(x, ...) UseMethod("transformBS")
 
 #' transform brickset Search XML response into data.frame
 transformBS.bsSearch <- function(bsSearchObj){
+  safOld  <- options()$stringsAsFactors
+  options(stringsAsFactors = FALSE)
   
   # Create XMLDocument
   xmlDat <- xmlTreeParse(content(bsSearchObj, as = "text"), getDTD = FALSE)
@@ -48,6 +50,7 @@ transformBS.bsSearch <- function(bsSearchObj){
   # Order Colums
   result <- result[ , valueClasses$value[valueClasses$value %in% names(result)]]
     
+  options(stringsAsFactors = safOld)
   return(result)
 }
 
