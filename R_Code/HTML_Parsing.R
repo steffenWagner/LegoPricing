@@ -2,26 +2,32 @@ require(XML)
 require(RCurl)
 require(httr)
 
-html <- content(GET("http://brickset.com/sets/60000-1/Fire-Motorcycle"))
-dom <- html$children$html
-names(dom)
-lapply(xmlChildren(asXMLNode(dom[[3]])), xmlChildren)
 
-xmlChildren(asXMLNode(xmlChildren(asXMLNode(dom[[3]]))$div))$div
+getAddSetInfo <- function(baseURL = "http://brickset.com/sets/", number, numberVar, setName){
+  
+  url <- paste(baseURL, paste(number, numberVar, sep = "-"), sep = "")
+  
+  doc.html = htmlTreeParse(url, useInternal = TRUE)
+  
+  # Extract all the paragraphs (HTML tag is p, starting at
+  # the root of the document). Unlist flattens the list to
+  # create a character vector.
+  doc.text <- cbind(unlist(xpathApply(doc.html, '//dt', xmlValue)),
+                    unlist(xpathApply(doc.html, '//dd', xmlValue)))
+  doc.text
+}
+
+addInfo <- mapply(function(number, numberVar) getAddSetInfo(number = number, numberVar=numberVar),
+                  dat$number, dat$numberVariant)
 
 
-# sink("testHTML.txt", append = FALSE)
-as.character(dom[[3]])[[3]]
-sink()
 
-
-  regexpr("<section class='featurebox '>(.*)", as.character(dom[[3]])[[3]])
-
-
-library(XML)
+dat[dat$number == 60000, c("number", "numberVariant", "setName")]
+names(dat)
+urlAddSetInfoBS(number = 6000, numberVar=1, setName = "Fire Motorcycle")
 
 # Read and parse HTML file
-doc.html = htmlTreeParse('http://brickset.com/sets/60000-1/Fire-Motorcycle',
+doc.html = htmlTreeParse(,
                          useInternal = TRUE)
 
 # Extract all the paragraphs (HTML tag is p, starting at
