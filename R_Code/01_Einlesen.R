@@ -1,6 +1,7 @@
 rm(list=ls(all = TRUE))
 require(rLego)
 require(scrapeR)
+require(RHTMLForms)
 
 # brickset API setting
 apiKey <- "yiSz-PevZ-udiD"

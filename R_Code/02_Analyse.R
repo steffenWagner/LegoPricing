@@ -3,6 +3,8 @@ require(rLego)
 require(Hmisc)
 require(rms)
 require(gdata)
+
+# Einlesen des Brickset Datensatzes
 files <- list.files(path="Data", pattern="^SetsYears", full.names=TRUE)
 files
 load(file = files[1])
