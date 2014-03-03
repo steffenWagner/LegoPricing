@@ -12,6 +12,7 @@ getAddSetInfo <- function(baseURL = "http://brickset.com/sets/", number, numberV
   # Extract all the paragraphs (HTML tag is p, starting at
   # the root of the document). Unlist flattens the list to
   # create a character vector.
+  # //section[@class='featurebox']//dd
   doc.text <- cbind(unlist(xpathApply(doc.html, '//dt', xmlValue)),
                     unlist(xpathApply(doc.html, '//dd', xmlValue)))
   doc.text
