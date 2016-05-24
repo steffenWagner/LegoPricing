@@ -31,7 +31,8 @@ transformBS.bsSearch <- function(bsSearchObj){
   # Create XMLDocument
   xmlDat <- xmlTreeParse(content(bsSearchObj, as = "text"), getDTD = FALSE)
   # Extract result Sets
-  listOfSetData <- xmlChildren(xmlDat$children$ArrayOfSetData)
+  listOfSetData <- xmlChildren(xmlDat$children$ArrayOfSet)
+  
   # Extract values
   resultList <- lapply(listOfSetData,
                        function(y) do.call(data.frame, lapply(xmlChildren(y), 

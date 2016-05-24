@@ -17,31 +17,37 @@
 #' If \code{userHash} is provided, the returned data will contain flags indicating whether the specified user owns and/or wants the set.
 #' @return brickset XML response set
 
-searchBS <- function( url = "http://brickset.com/webServices/brickset.asmx/",
+searchBS <- function( url = "brickset.com//api/v2.asmx/", cmd,
                        apiKey = "", userHash = "", query = "",
                        theme = "", subtheme = "", setNumber = "",
-                       year = "", Owned = "", Wanted = ""){
+                       year = "", Owned = "", Wanted = "",
+                      orderBy = "", pageSize = "", pageNumber = "", userName = ""){
   
-    cmd <- "search?"
-    
     nDash <- NROW(strsplit(setNumber, split = "-", fixed = TRUE)[[1]])
     if(nDash == 1){
       setNumber <- paste(setNumber, 1, sep = "-")
     }else if(nDash >1) warning("invalid setNumber format\n")
     
-    searchQuery <- paste(cmd, 
-          paste("apiKey=", apiKey, sep =""),
-          paste("userHash=", userHash, sep = ""),
-          paste("query=", query, sep = ""),
-          paste("theme=", theme, sep = ""),
-          paste("subtheme=", subtheme, sep = ""),
-          paste("setNumber=", setNumber, sep = ""),
-          paste("year=", year, sep = ""),
-          paste("Owned=", Owned, sep = ""),
-          paste("Wanted=", Wanted, sep = ""), sep = "&")
+    searchQuery <- paste(paste0(cmd, "?"),
+                         paste("query=", query, sep = ""),
+                         paste("apiKey=", apiKey, sep =""),
+                         paste("userHash=", userHash, sep = ""),
+                         paste("theme=", theme, sep = ""),
+                         paste("subtheme=", subtheme, sep = ""),
+                         paste("setNumber=", setNumber, sep = ""),
+                         paste("year=", year, sep = ""),
+                         paste("Owned=", Owned, sep = ""),
+                         paste("Wanted=", Wanted, sep = ""),
+                         paste("orderBy=", orderBy, sep = ""), 
+                         paste("pageSize=", pageSize, sep = ""), 
+                         paste("pageNumber=", pageNumber, sep = ""), 
+                         paste("userName=", userName, sep = ""), 
+                         sep = "&")
     
 
   xmlRes <- GET(paste(url, searchQuery, sep =""))
   class(xmlRes) <- c("bsSearch", class(xmlRes))
   xmlRes
 }
+
+

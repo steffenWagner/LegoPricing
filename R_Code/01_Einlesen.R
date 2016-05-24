@@ -5,8 +5,8 @@ require(rLego)
 apiKey <- "yiSz-PevZ-udiD"
 
 ## Einlesen der Daten:
-years <- 2010:2014
-XMLdata <- lapply(years, function(x) searchBS(year = x, apiKey=apiKey))
+years <- 2010:2016
+XMLdata <- lapply(years, function(x) searchBS(year = x, apiKey=apiKey, pageSize = 1000, cmd = "getSets", theme = "Ninjago"))
 
 ## Aufbereiten der Daten
 dat <- do.call(rbind, lapply(XMLdata, transformBS))
