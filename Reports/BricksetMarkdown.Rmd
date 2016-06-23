@@ -16,6 +16,7 @@ The website [http://brickset.com](http://brickset.com) has detailed data on Lego
 
 
 ```{r}
+rm(list = ls(all.names = TRUE)) # clear the Global Environment
 library("httr")
 library("XML")
 library("rvest")
@@ -60,12 +61,21 @@ lego <- xmlDat %>% xmlParse() %>% xmlToDataFrame()
 ## Pick Relevant Variables And Set Correct Class
 The dataset has lots of variables that are redundant to this analysis. So let's clean up a little bit. 
 ```{r }
-# the 'dplyr::' makes sure that the select()-funtion is masked from package dplyr 
-# sometimes select() produces an error because select() from MASS package is used
+# the 'dplyr::' makes sure that the select()-function contained in the dplyr package is used
+# this avoids occasional errors due to function masking by other packages (e.g. when select() from MASS package is used)
 
-lego <- lego %>% 
-  dplyr::select(., setID, name, year, theme, pieces, UKRetailPrice, USRetailPrice, 
-                                    EURetailPrice, bricksetURL)
+lego <- lego %>%
+  dplyr::select(
+  setID,
+  name,
+  year,
+  theme,
+  pieces,
+  UKRetailPrice,
+  USRetailPrice,
+  EURetailPrice,
+  bricksetURL
+  )
 
 num <- c("year", "pieces", "UKRetailPrice", "USRetailPrice", "EURetailPrice")
 lego[, num] <- sapply(lego[, num], as.numeric)
@@ -77,8 +87,7 @@ Now take a look on which Lego themes we've got.
 lego %>% 
   group_by(theme) %>% # tally(sort = TRUE)
   summarise(count = n()) %>%
-  arrange(., desc(count)) 
-
+  arrange(desc(count)) 
 
 ```
 
@@ -92,19 +101,19 @@ lego <- lego %>%
 relevantThemes <- lego %>% 
   group_by(theme) %>% 
   summarise(count = n()) %>%
-  arrange(., desc(count)) %>% 
+  arrange(desc(count)) %>% 
   slice(1:4) %>% 
   .[["theme"]]
 
-lego <- lego %>% filter(., theme %in% relevantThemes)
+lego <- lego %>% filter(theme %in% relevantThemes)
 ```
 
 
 ## Web Scraping For Additional Information
-If you take a look at the variables in the dataset and if you take a further look on the brickset website for each set you might notice that there are some information in the web that we don't have in our dataset. Such things as the weight and the dimensions of a set could be quite helpful information here. So what we'll do is scrape each set-website (luckily the brickset URL is one of the variables in the dataset) and get us the data we want. 
+If you take a look at the variables in the dataset and if you take a further look on the brickset website, for each set you might notice that there are some information in the web that we don't have yet in our dataset. Such things as the weight and the dimensions of a set could be quite helpful information here. So what we'll do is scrape each set-website (luckily the brickset URL is one of the variables in the dataset) and get us the data we want. 
 
 ```{r }
-for (i in 1:length(lego$bricksetURL)) {
+for (i in seq_along(lego$bricksetURL)) {
   r <- GET(lego$bricksetURL[i])
   
   # get features and infos
@@ -127,16 +136,15 @@ lego$weight <- lego$weight %>%
   as.numeric()*1000        # get grams instead of kilo
 
 lego$volume <- lego$volume %>% 
-  strsplit(., " x | cm") %>%  # cut character string where 'x' and 'cm' is
-  lapply(., `[`, 1:3) %>%     # take the three first arguments from each list (length, width, height)
-  lapply(., as.numeric) %>%   # convert to numeric
-  lapply(., prod ) %>%        # dimension in cubic centimeter 
-  unlist() / 1000             # calculate the packaging size in liters (1 liter = 1000 cubic centimeter)
+  strsplit(" x | cm") %>%  # cut character string where 'x' and 'cm' is
+  lapply(`[`, 1:3) %>%     # take the three first arguments from each list (length, width, height)
+  lapply(as.numeric) %>%   # convert to numeric
+  lapply(prod ) %>%        # dimension in cubic centimeter 
+  unlist() / 1000          # calculate the packaging size in liters (1 liter = 1000 cubic centimeter)
   
 
-# pricePerPiece (€) can be calculated by hand
-lego <- mutate(lego, pricePerPiece = lego$EURetailPrice/lego$pieces)
-
+# pricePerPiece (EUR) can be calculated by hand
+lego <- lego %>% mutate(pricePerPiece = EURetailPrice/pieces)
 
 ```
 
@@ -156,7 +164,7 @@ As the description of the dataset has shown, there are some variables that have 
 sum(complete.cases(lego))
 
 # exclude sets with NAs
-lego <- lego[complete.cases(lego), ]
+lego <- na.omit(lego)
 
 ```
 
@@ -167,7 +175,7 @@ lego <- lego[complete.cases(lego), ]
 lego <- lego %>% filter(!weight/pieces > quantile(weight/pieces, na.rm = T, probs = c(.99))) 
 ```
 
-For the reason that I live in Germany I will work with the € price of the Lego sets. 
+For the reason that I live in Germany I will work with the EUR price of the Lego sets. 
 
 ```{r}
 # Price ~ Packaging Size by Theme
@@ -175,7 +183,7 @@ p1 <- ggplot(lego, aes(volume, EURetailPrice)) +
   geom_point(aes(color = theme), size = 2, alpha = .5) + 
   geom_hline(yintercept = mean(lego$EURetailPrice), lty = "dashed") +
   geom_vline(xintercept = mean(lego$volume), lty = "dashed") +
-  ylab("Price [€]") + xlab("Packaging Size [liter]")  +
+  ylab("Price [EUR]") + xlab("Packaging Size [liter]")  +
   theme(legend.position = "none") 
 
 # Price ~ Pieces
@@ -208,7 +216,7 @@ plot_grid(p1, p2, p3, nrow=1, rel_widths = c(2, 2, 2.5))
 p4 <- ggplot(lego, aes(weight/pieces, EURetailPrice/pieces)) + 
   geom_point(aes(color = theme, size = lego$pieces), alpha = .5) +
   xlab("Weight Per Piece [g]") +
-  ylab("Price Per Piece [€]") +
+  ylab("Price Per Piece [EUR]") +
   theme(legend.position = c(0.2,0.8)) +
   scale_size(guide = 'none') 
 
@@ -239,33 +247,36 @@ It can be seen that on average the Star Wars Lego theme has the lightest but mos
 Now I wondered if Lego has a different price policy in the other currency areas. For each I regressed the price per gram on the theme. In order to get a regression coefficient for every factor of theme I excluded the intercept. 
 ```{r}
 # USA
-fit <- lm(USRetailPrice/weight ~ 0 + theme, data = lego)
+fit <- lm(USRetailPrice/weight ~ theme - 1, data = lego)
 
 PPG_USA <- coef(fit) %>% 
-  setNames(., unlist(fit$x)) %>% 
-  round(., 4)*100 
+  setNames(fit$xlevels$theme) %>% 
+  `*`(100) %>% 
+  round(digits = 2)
 
 ```
 
 
 ```{r}
 # UK
-fit <- lm(UKRetailPrice/weight ~ 0 + theme, data = lego)
+fit <- lm(UKRetailPrice/weight ~ theme - 1, data = lego)
 
 PPG_UK <- coef(fit) %>% 
-  setNames(., unlist(fit$x)) %>% 
-  round(., 4)*100 
+  setNames(fit$xlevels$theme) %>% 
+  `*`(100) %>% 
+  round(digits = 2) 
 
 ```
 
 
 ```{r}
 # EU
-fit <- lm(EURetailPrice/weight ~ 0 + theme, data = lego)
+fit <- lm(EURetailPrice/weight ~ theme - 1, data = lego)
 
 PPG_EU <- coef(fit) %>% 
-  setNames(., unlist(fit$x)) %>% 
-  round(., 4)*100 
+  setNames(fit$xlevels$theme) %>% 
+  `*`(100) %>% 
+  round(digits = 2)
 
 ```
 
@@ -278,26 +289,25 @@ PPG_USA
 # Price of 1g Lego in Pence
 PPG_UK
 
-# Price of 1g Lego in Cents (€)
+# Price of 1g Lego in Cents (EUR)
 PPG_EU
 ```
 Roughly there is the same price relation among the themes in each currency area. But still you pay appr. 37 % more for Lego Star Wars compared to City in the EU. In the UK it is 35 % and in the US 20 %. 
 
 
-## Price Development (per 1g) By Theme And Year
+## Price Development (per 1g) by Theme And Year
 One information we still didn't use is the year, let's change that and take a look at the yearly price development for each theme. 
 
 ```{r }
 # regression grouped by year
-lego$year <- as.factor(lego$year)
-lego$theme <- as.factor(lego$theme)
+lego[c("year", "theme")][]  <- lapply(lego[c("year", "theme")], as.factor)
 
 priceDev <- lego %>% 
-              lmList(EURetailPrice/weight ~ 0 + theme | year, data = .)  %>%   # regression grouped by year
-              coef() %>%                                                # get regression coefficients
-              data.frame() %>%                                          # create a data frame 
-              setNames(., gsub('theme', '', names(.))) %>%              # nice colnames
-              mutate(., year = as.numeric(rownames(.)))                 # add 'year' variable from rownames
+              lmList(formula = EURetailPrice/weight ~ 0 + theme | year)  %>%   # regression grouped by year
+              coef %>%                                                         # get regression coefficients
+              data.frame %>%                                                   # create a data frame 
+              setNames(gsub('theme', '', names(.))) %>%                        # nice colnames
+              mutate(year = as.numeric(rownames(.)))                           # add 'year' variable from rownames
               
 
 # for ggplot we need to have a clean data frame (each variable in one column)
@@ -336,9 +346,7 @@ ggplot(priceDev, aes(x = year, y = estimate, group = term)) +
 ```
 
  
-  
-  
-So the good thing is that I was right with my assumption concerning Lego Star Wars. But unfortunately this fact wont invalidate my son's argument that it is Lego Star Wars he likes to play with most. 
+So the good thing is that I was right with my assumption concerning the higher prices for Lego Star Wars. But unfortunately this fact wont invalidate my son's argument that it is Lego Star Wars he likes to play with most. 
 
 
 
